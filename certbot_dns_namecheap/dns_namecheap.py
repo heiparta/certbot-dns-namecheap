@@ -1,6 +1,7 @@
 """DNS Authenticator for Namecheap DNS."""
+import ipaddress
 import logging
-
+import urllib3
 import zope.interface
 from lexicon.providers import namecheap
 
@@ -9,7 +10,6 @@ from certbot import interfaces
 from certbot.plugins import dns_common
 from certbot.plugins import dns_common_lexicon
 
-from urllib2 import urlopen
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,8 @@ class _NamecheapLexiconClient(dns_common_lexicon.LexiconClient):
 
     def __init__(self, username, api_key, ttl, domain):
         super(_NamecheapLexiconClient, self).__init__()
-        my_ip = urlopen('http://ip.42.pl/raw').read()
+        my_ip_raw = urllib3.request('GET', 'https://api.ipify.org?format=text').data.decode('utf-8')
+        my_ip = ipaddress.ip_address(my_ip_raw)
         logger.debug(my_ip)
         self.provider = namecheap.Provider({
             'auth_username': username,
